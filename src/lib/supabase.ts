@@ -17,6 +17,68 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Local workspace data store for productivity objects. Authentication is handled by Supabase Auth.
 const STORAGE_PREFIX = 'motrack_';
+export const MOTRACK_DATA_CHANGED_EVENT = 'motrack_data_changed';
+
+export type WorkspaceMutationStatus = 'loading' | 'success' | 'error';
+
+export type WorkspaceMutationDetail = {
+  entity: string;
+  action: string;
+  status: WorkspaceMutationStatus;
+  message?: string;
+  at: string;
+};
+
+const workspaceBroadcast =
+  typeof BroadcastChannel !== 'undefined'
+    ? new BroadcastChannel('motrack_workspace_updates')
+    : null;
+
+export function emitWorkspaceChange(detail?: Partial<WorkspaceMutationDetail>) {
+  if (typeof window === 'undefined') return;
+
+  const payload: WorkspaceMutationDetail = {
+    entity: detail?.entity || 'workspace',
+    action: detail?.action || 'refresh',
+    status: detail?.status || 'success',
+    message: detail?.message || 'Workspace updated.',
+    at: new Date().toISOString(),
+  };
+
+  window.dispatchEvent(new CustomEvent<WorkspaceMutationDetail>(MOTRACK_DATA_CHANGED_EVENT, { detail: payload }));
+
+  try {
+    workspaceBroadcast?.postMessage(payload);
+  } catch {
+    // Ignore cross-tab notification failures.
+  }
+}
+
+export function subscribeToLocalWorkspaceChanges(listener: (detail: WorkspaceMutationDetail) => void) {
+  if (typeof window === 'undefined') return () => {};
+
+  const handleWindowEvent = (event: Event) => {
+    listener((event as CustomEvent<WorkspaceMutationDetail>).detail || {
+      entity: 'workspace',
+      action: 'refresh',
+      status: 'success',
+      message: 'Workspace updated.',
+      at: new Date().toISOString(),
+    });
+  };
+
+  const handleBroadcast = (event: MessageEvent<WorkspaceMutationDetail>) => {
+    listener(event.data);
+  };
+
+  window.addEventListener(MOTRACK_DATA_CHANGED_EVENT, handleWindowEvent);
+  workspaceBroadcast?.addEventListener('message', handleBroadcast);
+
+  return () => {
+    window.removeEventListener(MOTRACK_DATA_CHANGED_EVENT, handleWindowEvent);
+    workspaceBroadcast?.removeEventListener('message', handleBroadcast);
+  };
+}
 
 try {
   localStorage.removeItem(STORAGE_PREFIX + 'user_session');
@@ -500,7 +562,57 @@ export function addMockActivityLog(action: string, entity_type: string, entity_i
   };
   logs.unshift(newLog);
   setStorage('activity_logs', logs);
-  window.dispatchEvent(new Event('motrack_data_changed'));
+}
+
+const realtimeTableDefaults: Record<string, any[]> = {
+  projects: defaultProjects,
+  subtasks: defaultSubtasks,
+  daily_activities: defaultDailyActivities,
+  weekly_goals: defaultWeeklyGoals,
+  notes: defaultNotes,
+  focus_sessions: defaultFocusSessions,
+  activity_logs: defaultActivityLogs,
+  habits: defaultHabits,
+};
+
+export function applyWorkspaceRealtimePayload(
+  table: string,
+  eventType: string,
+  nextRecord: any,
+  previousRecord: any,
+) {
+  if (!table) return;
+
+  if (table === 'profiles') {
+    if (eventType !== 'DELETE' && nextRecord) {
+      const currentProfile = getStorage('profile', defaultProfile);
+      setStorage('profile', { ...currentProfile, ...nextRecord });
+    }
+    return;
+  }
+
+  const defaultValue = realtimeTableDefaults[table];
+  if (!defaultValue) return;
+
+  const existingRecords = getStorage<any[]>(table, defaultValue);
+  const recordId = nextRecord?.id || previousRecord?.id;
+  if (!recordId) return;
+
+  if (eventType === 'DELETE') {
+    setStorage(table, existingRecords.filter(record => record.id !== recordId));
+    return;
+  }
+
+  const nextRecords = [...existingRecords];
+  const existingIndex = nextRecords.findIndex(record => record.id === recordId);
+
+  if (existingIndex >= 0) {
+    nextRecords[existingIndex] = { ...nextRecords[existingIndex], ...nextRecord };
+  } else {
+    nextRecords.unshift(nextRecord);
+  }
+
+  setStorage(table, nextRecords);
 }
 
 // Productivity data operations. Auth/session state stays fully connected to Supabase.
@@ -569,7 +681,7 @@ export const mockDb = {
         .select()
         .single();
 
-      window.dispatchEvent(new Event('motrack_data_changed'));
+      emitWorkspaceChange();
       if (!error && data) {
         return { data, error: null };
       }
@@ -577,7 +689,7 @@ export const mockDb = {
 
     const prof = { ...getStorage('profile', defaultProfile), ...updates };
     setStorage('profile', prof);
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { data: prof, error: null };
   },
   getProjects: async () => {
@@ -608,7 +720,7 @@ export const mockDb = {
       addMockActivityLog('CREATE_PROJECT', 'projects', updated.id, `Created project: "${updated.title}"`);
     }
     setStorage('projects', projs);
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { data: updated, error: null };
   },
   deleteProject: async (id: string) => {
@@ -623,7 +735,7 @@ export const mockDb = {
     setStorage('subtasks', subs);
 
     addMockActivityLog('DELETE_PROJECT', 'projects', id, `Deleted project: "${target?.title || id}"`);
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { error: null };
   },
 
@@ -659,7 +771,7 @@ export const mockDb = {
       await mockDb.recalculateProjectProgress(updated.project_id);
     }
     
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { data: updated, error: null };
   },
   deleteSubtask: async (id: string) => {
@@ -671,7 +783,7 @@ export const mockDb = {
       await mockDb.recalculateProjectProgress(sub.project_id);
       addMockActivityLog('DELETE_SUBTASK', 'subtasks', id, `Removed micro-milestone: "${sub.title}"`);
     }
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { error: null };
   },
   toggleSubtask: async (id: string) => {
@@ -695,7 +807,7 @@ export const mockDb = {
       if (sub.project_id) {
         await mockDb.recalculateProjectProgress(sub.project_id);
       }
-      window.dispatchEvent(new Event('motrack_data_changed'));
+      emitWorkspaceChange();
     }
     return { error: null };
   },
@@ -737,7 +849,7 @@ export const mockDb = {
       addMockActivityLog('CREATE_ACTIVITY', 'daily_activities', updated.id, `Logged daily routine activity: "${updated.title}" (${updated.type})`);
     }
     setStorage('daily_activities', acts);
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { data: updated, error: null };
   },
   deleteDailyActivity: async (id: string) => {
@@ -748,7 +860,7 @@ export const mockDb = {
     if (target) {
       addMockActivityLog('DELETE_ACTIVITY', 'daily_activities', id, `Erased timeline slot: "${target.title}"`);
     }
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { error: null };
   },
 
@@ -784,7 +896,7 @@ export const mockDb = {
       addMockActivityLog('CREATE_WEEKLY_GOAL', 'weekly_goals', updated.id, `Set weekly baseline standard: "${updated.title}"`);
     }
     setStorage('weekly_goals', goals);
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { data: updated, error: null };
   },
   deleteWeeklyGoal: async (id: string) => {
@@ -795,7 +907,7 @@ export const mockDb = {
     if (target) {
       addMockActivityLog('DELETE_WEEKLY_GOAL', 'weekly_goals', id, `Removed weekly intent goal: "${target.title}"`);
     }
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { error: null };
   },
   incrementWeeklyGoal: async (id: string, amt: number = 1) => {
@@ -812,7 +924,7 @@ export const mockDb = {
       }
       goals[idx] = g;
       setStorage('weekly_goals', goals);
-      window.dispatchEvent(new Event('motrack_data_changed'));
+      emitWorkspaceChange();
     }
     return { error: null };
   },
@@ -840,7 +952,7 @@ export const mockDb = {
       addMockActivityLog('CREATE_NOTE', 'notes', updated.id, `Composed note entry: "${updated.title}"`);
     }
     setStorage('notes', notesList);
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { data: updated, error: null };
   },
   deleteNote: async (id: string) => {
@@ -851,7 +963,7 @@ export const mockDb = {
     if (target) {
       addMockActivityLog('DELETE_NOTE', 'notes', id, `Discarded note card: "${target.title}"`);
     }
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { error: null };
   },
   togglePinNote: async (id: string) => {
@@ -860,7 +972,7 @@ export const mockDb = {
     if (idx > -1) {
       notesList[idx].is_pinned = !notesList[idx].is_pinned;
       setStorage('notes', notesList);
-      window.dispatchEvent(new Event('motrack_data_changed'));
+      emitWorkspaceChange();
     }
     return { error: null };
   },
@@ -903,7 +1015,7 @@ export const mockDb = {
     }
 
     addMockActivityLog('COMPLETE_FOCUS', 'focus_sessions', newSession.id, `Completed focus session for ${newSession.duration} minutes`);
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { data: newSession, error: null };
   },
 
@@ -936,7 +1048,7 @@ export const mockDb = {
       addMockActivityLog('CREATE_HABIT', 'habits', updated.id, `Started a new daily habit loop: "${updated.title}"`);
     }
     setStorage('habits', habits);
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { data: updated, error: null };
   },
 
@@ -948,7 +1060,7 @@ export const mockDb = {
     if (target) {
       addMockActivityLog('DELETE_HABIT', 'habits', id, `Terminated habit routine: "${target.title}"`);
     }
-    window.dispatchEvent(new Event('motrack_data_changed'));
+    emitWorkspaceChange();
     return { error: null };
   },
 
@@ -967,7 +1079,7 @@ export const mockDb = {
       }
       habits[idx] = h;
       setStorage('habits', habits);
-      window.dispatchEvent(new Event('motrack_data_changed'));
+      emitWorkspaceChange();
     }
     return { error: null };
   },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'motion/react';
 import {
   BarChart3,
@@ -21,43 +21,19 @@ import {
 } from 'recharts';
 import { mockDb } from '../lib/supabase';
 import { GlassCard, GlowCard, LoadingState, PageHeader } from '../components/Reusable';
+import { useWorkspaceSnapshot } from '../hooks/useWorkspaceSnapshot';
 
 export const Analytics: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [momentum, setMomentum] = useState({ score: 75, streak: 5 });
-  const [subtasks, setSubtasks] = useState<any[]>([]);
-  const [focusSessions, setFocusSessions] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
-
-  const loadData = async () => {
-    try {
-      const { data: subs } = await mockDb.getSubtasks();
-      const { data: focus } = await mockDb.getFocusSessions();
-      const { data: acts } = await mockDb.getDailyActivities();
-
-      setSubtasks(subs || []);
-      setFocusSessions(focus || []);
-      setActivities(acts || []);
-
-      setMomentum(mockDb.getMomentumScore());
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-    window.addEventListener('motrack_data_changed', loadData);
-    return () => {
-      window.removeEventListener('motrack_data_changed', loadData);
-    };
-  }, []);
+  const { snapshot, loading, isRefreshing, error, realtimeState } = useWorkspaceSnapshot();
 
   if (loading) {
     return <LoadingState message="Preparing your insights..." />;
   }
+
+  const momentum = snapshot?.momentum || mockDb.getMomentumScore();
+  const subtasks = snapshot?.subtasks || [];
+  const focusSessions = snapshot?.focusSessions || [];
+  const activities = snapshot?.dailyActivities || [];
 
   // Pre-formatted high-fidelity chart datasets
   // 1. Weekly timeline stats (Focus minutes per day)
@@ -94,6 +70,20 @@ export const Analytics: React.FC = () => {
         title="Analytics"
         description="See the signals behind your focus, routines, and project momentum."
       />
+
+      <div
+        className={`rounded-lg border px-4 py-3 text-xs ${
+          error
+            ? 'border-rose-400/20 bg-rose-500/10 text-rose-100'
+            : 'border-white/10 bg-white/[0.035] text-slate-400'
+        }`}
+        aria-live="polite"
+      >
+        <span className="font-semibold text-white">
+          {error ? 'Analytics sync issue' : isRefreshing ? 'Refreshing analytics' : realtimeState.status === 'subscribed' ? 'Live analytics active' : 'Analytics ready'}
+        </span>
+        <span className="ml-2">{error || 'Numbers update when workspace data changes.'}</span>
+      </div>
 
       {/* Bento Stats row */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">

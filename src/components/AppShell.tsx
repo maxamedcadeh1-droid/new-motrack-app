@@ -19,6 +19,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { mockDb, supabase } from '../lib/supabase';
+import { subscribeToSupabaseWorkspaceRealtime } from '../lib/realtime';
 import { QuickAddModal } from './QuickAddModal';
 
 export const AppShell: React.FC = () => {
@@ -47,6 +48,7 @@ export const AppShell: React.FC = () => {
   useEffect(() => {
     loadData();
     window.addEventListener('motrack_data_changed', loadData);
+    const unsubscribeRealtime = subscribeToSupabaseWorkspaceRealtime();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       if (!nextSession) {
@@ -61,6 +63,7 @@ export const AppShell: React.FC = () => {
 
     return () => {
       window.removeEventListener('motrack_data_changed', loadData);
+      unsubscribeRealtime();
       authListener.subscription.unsubscribe();
     };
   }, [navigate]);

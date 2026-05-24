@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import {
   Sparkles,
@@ -8,13 +8,14 @@ import {
   BookOpen,
   ArrowRight,
   TrendingUp,
-  Flame,
+  FolderKanban,
   Play,
   Send,
   RefreshCw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { mockDb } from '../lib/supabase';
+import { useWorkspaceSnapshot } from '../hooks/useWorkspaceSnapshot';
 import {
   GlassCard,
   GlowCard,
@@ -29,15 +30,16 @@ import {
 } from '../components/Reusable';
 
 export const Dashboard: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [subtasks, setSubtasks] = useState<any[]>([]);
-  const [recentLogs, setRecentLogs] = useState<any[]>([]);
-  const [weeklyProgress, setWeeklyProgress] = useState({ done: 0, target: 4 });
-  const [focusMinSum, setFocusMinSum] = useState(0);
-  const [momentum, setMomentum] = useState({ score: 75, streak: 5 });
-  const [habitConsistency, setHabitConsistency] = useState(100);
+  const {
+    snapshot,
+    loading,
+    isRefreshing,
+    error,
+    lastMutation,
+    realtimeState,
+    lastUpdatedAt,
+    refresh,
+  } = useWorkspaceSnapshot();
 
   // Interactive AI Assistant states
   const [aiPrompt, setAiPrompt] = useState('');
@@ -86,52 +88,8 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const loadDashboardData = async () => {
-    try {
-      const { data: prof } = await mockDb.getProfile();
-      const { data: projs } = await mockDb.getProjects();
-      const { data: subs } = await mockDb.getSubtasks();
-      const { data: logs } = await mockDb.getActivityLogs();
-      const { data: focus } = await mockDb.getFocusSessions();
-      const { data: goals } = await mockDb.getWeeklyGoals();
-
-      setProfile(prof);
-      setProjects(projs || []);
-      setSubtasks(subs || []);
-      setRecentLogs(logs ? logs.slice(0, 5) : []);
-
-      // Weekly goals calculation
-      if (goals && goals.length > 0) {
-        const completedGoals = goals.filter(g => g.status === 'Completed').length;
-        setWeeklyProgress({ done: completedGoals, target: goals.length });
-      }
-
-      // Sum focus minutes
-      if (focus) {
-        setFocusMinSum(focus.reduce((acc, curr) => acc + (curr.duration || 0), 0));
-      }
-
-      setHabitConsistency(mockDb.getWeeklyConsistencyScore());
-
-      setMomentum(mockDb.getMomentumScore());
-    } catch (err) {
-      console.error('Error fetching dashboard content:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadDashboardData();
-    window.addEventListener('motrack_data_changed', loadDashboardData);
-    return () => {
-      window.removeEventListener('motrack_data_changed', loadDashboardData);
-    };
-  }, []);
-
   const handleToggleSubtask = async (id: string) => {
     await mockDb.toggleSubtask(id);
-    // Auto reloaded via state listener
   };
 
   // Adaptive Greet message based on current hour
@@ -168,8 +126,21 @@ export const Dashboard: React.FC = () => {
     return <LoadingState message="Preparing your dashboard..." />;
   }
 
+  const profile = snapshot?.profile;
+  const projects = snapshot?.projects || [];
+  const activeProjects = snapshot?.activeProjects || [];
+  const subtasks = snapshot?.subtasks || [];
+  const recentLogs = snapshot?.recentLogs || [];
+  const weeklyProgress = snapshot?.weeklyProgress || { done: 0, target: 0 };
+  const focusMinSum = snapshot?.focusMinSum || 0;
+  const momentum = snapshot?.momentum || { score: 75, streak: 5 };
+  const habitConsistency = snapshot?.habitConsistency || 0;
   const suggestion = getSmartSuggestion();
-  const completedSubtasksCount = subtasks.filter(s => s.is_completed).length;
+  const completedSubtasksCount = snapshot?.completedSubtasksCount || 0;
+  const syncLabel = isRefreshing ? 'Syncing now' : realtimeState.status === 'subscribed' ? 'Live sync active' : 'Local live updates';
+  const lastUpdatedLabel = lastUpdatedAt
+    ? new Date(lastUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : 'just now';
 
   return (
     <div className="page-shell">
@@ -233,6 +204,32 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
+      <div
+        className={`flex flex-col gap-3 rounded-lg border px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between ${
+          error
+            ? 'border-rose-400/20 bg-rose-500/10 text-rose-100'
+            : 'border-white/10 bg-white/[0.035] text-slate-300'
+        }`}
+        aria-live="polite"
+      >
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={`h-2 w-2 rounded-full ${error ? 'bg-rose-300' : isRefreshing ? 'bg-cyan-300' : 'bg-emerald-300'}`} />
+            <span className="font-semibold">{error ? 'Dashboard sync needs attention' : syncLabel}</span>
+          </div>
+          <p className="mt-1 truncate text-xs text-slate-400">
+            {error || lastMutation?.message || `Updated ${lastUpdatedLabel}`}
+          </p>
+        </div>
+        <button
+          onClick={() => refresh({ entity: 'dashboard', action: 'manual-refresh', status: 'loading', message: 'Refreshing dashboard.' })}
+          className="touch-target flex shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/[0.08]"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-5 lg:gap-4">
         <Link to="/projects" className="block hover:scale-[1.01] transition-transform duration-200">
           <StatCard
@@ -276,12 +273,12 @@ export const Dashboard: React.FC = () => {
         </Link>
         <div className="block hover:scale-[1.01] transition-transform duration-200">
           <StatCard
-            title="Streak"
-            value={`${momentum.streak} Days`}
-            subtext="Showing up"
-            icon={Flame}
+            title="Active Projects"
+            value={activeProjects.length}
+            subtext="Currently moving"
+            icon={FolderKanban}
             iconColor="amber"
-            trend={{ value: '+1 today', isPositive: true }}
+            trend={{ value: `${projects.length} total`, isPositive: true }}
           />
         </div>
       </div>
