@@ -1,0 +1,6 @@
+{
+  "name": "MoTrack",
+  "description": "A premium student productivity operating system to track projects, subtasks, daily timelines, weekly goals, notes, focus, and momentum.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
