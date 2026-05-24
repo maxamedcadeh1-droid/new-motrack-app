@@ -12,7 +12,7 @@ import {
   Flame
 } from 'lucide-react';
 import { mockDb } from '../lib/supabase';
-import { GlassCard, GlowCard, LoadingState, GradientButton } from '../components/Reusable';
+import { GlassCard, GlowCard, LoadingState, PageHeader } from '../components/Reusable';
 
 export const Focus: React.FC = () => {
   const [projects, setProjects] = useState<any[]>([]);
@@ -188,31 +188,24 @@ export const Focus: React.FC = () => {
 
   return (
     <div className="page-shell-narrow select-none font-sans text-xs">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="page-title flex items-center gap-2">
-            <Brain className="w-6 h-6 text-purple-400" />
-            Focus Timer
-          </h1>
-          <p className="page-subtitle mt-2">
-            Enter a quiet focus session, attach it to a project, and let progress log itself.
-          </p>
-        </div>
-
-        {/* Sound toggler */}
-        <button
-          onClick={() => setIsAudioMuted(!isAudioMuted)}
-          className={`touch-target rounded-lg px-4 py-2 transition font-sans text-sm font-semibold flex items-center gap-2 border cursor-pointer ${
-            !isAudioMuted
-              ? 'bg-purple-600/15 border-purple-500/20 text-purple-300 shadow-md shadow-purple-500/10'
-              : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white'
-          }`}
-        >
-          {isAudioMuted ? <VolumeX className="w-4 h-4 text-neutral-400" /> : <Volume2 className="w-4 h-4 text-purple-400 animate-bounce" />}
-          {isAudioMuted ? 'Sound Off' : 'Focus Sound'}
-        </button>
-      </div>
+      <PageHeader
+        icon={Brain}
+        title="Focus Timer"
+        description="Enter a quiet focus session, attach it to a project, and let progress log itself."
+        action={
+          <button
+            onClick={() => setIsAudioMuted(!isAudioMuted)}
+            className={`touch-target flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2 font-sans text-sm font-semibold transition sm:w-auto ${
+              !isAudioMuted
+                ? 'border-purple-500/20 bg-purple-600/15 text-purple-300 shadow-md shadow-purple-500/10'
+                : 'border-white/10 bg-neutral-900 text-neutral-400 hover:text-white'
+            }`}
+          >
+            {isAudioMuted ? <VolumeX className="h-4 w-4 text-neutral-400" /> : <Volume2 className="h-4 w-4 text-purple-400" />}
+            {isAudioMuted ? 'Sound Off' : 'Focus Sound'}
+          </button>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6 lg:items-start">
         {/* Main interactive visual clock */}

@@ -12,7 +12,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { mockDb } from '../lib/supabase';
-import { GlassCard, GlowCard, EmptyState, LoadingState, GradientButton } from '../components/Reusable';
+import { GlassCard, GlowCard, EmptyState, LoadingState, GradientButton, PageHeader, ProgressBar, StatusBadge } from '../components/Reusable';
 
 export const Projects: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -155,16 +155,10 @@ export const Projects: React.FC = () => {
             <div className="flex justify-between items-start gap-4 mb-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] font-mono uppercase bg-purple-500/10 text-purple-400 font-semibold px-2 py-0.5 rounded-md">
-                    {selectedProject.category}
-                  </span>
-                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${
-                    selectedProject.priority === 'High' ? 'bg-rose-500/10 text-rose-300 border border-rose-500/15' :
-                    selectedProject.priority === 'Medium' ? 'bg-amber-500/10 text-amber-300 border border-amber-500/15' :
-                    'bg-neutral-800 text-neutral-400'
-                  }`}>
+                  <StatusBadge tone="purple">{selectedProject.category}</StatusBadge>
+                  <StatusBadge tone={selectedProject.priority === 'High' ? 'rose' : selectedProject.priority === 'Medium' ? 'amber' : 'neutral'}>
                     {selectedProject.priority} Priority
-                  </span>
+                  </StatusBadge>
                 </div>
                 <h1 className="font-display text-2xl font-semibold leading-tight tracking-normal text-white md:text-3xl">
                   {selectedProject.title}
@@ -189,14 +183,7 @@ export const Projects: React.FC = () => {
                     <span className="text-neutral-400 font-sans">Momentum</span>
                 <span className="font-mono font-bold text-white text-sm">{progressPercent}%</span>
               </div>
-              <div className="w-full h-2.5 bg-neutral-950 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressPercent}%` }}
-                  transition={{ duration: 0.6 }}
-                  className="h-full bg-gradient-to-r from-purple-500 to-cyan-500"
-                />
-              </div>
+              <ProgressBar value={progressPercent} color="blue" className="h-2.5" />
               <div className="flex justify-between items-center text-[10px] text-neutral-400 font-sans pt-2">
                 <span>{completedSubs} of {subtasks.length} tasks complete</span>
                 {selectedProject.deadline && (
@@ -359,26 +346,20 @@ export const Projects: React.FC = () => {
   // RENDERING COMPREHENSIVE PROJECTS LIST VIEW 
   return (
     <div className="page-shell">
-      {/* List view Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="page-title flex items-center gap-2">
-            <FolderKanban className="w-6 h-6 text-purple-400" />
-            Projects
-          </h1>
-          <p className="page-subtitle mt-2">
-            Organize coursework, product builds, and study plans into clear momentum.
-          </p>
-        </div>
-
-        <GradientButton
-          onClick={() => setIsCreatingProject(!isCreatingProject)}
-          variant={isCreatingProject ? 'ghost' : 'purple'}
-          className="w-full px-4 py-2 text-sm sm:w-auto"
-        >
-          {isCreatingProject ? 'Cancel' : 'New Project'}
-        </GradientButton>
-      </div>
+      <PageHeader
+        icon={FolderKanban}
+        title="Projects"
+        description="Organize coursework, product builds, and study plans into clear momentum."
+        action={
+          <GradientButton
+            onClick={() => setIsCreatingProject(!isCreatingProject)}
+            variant={isCreatingProject ? 'ghost' : 'purple'}
+            className="w-full px-4 py-2 text-sm sm:w-auto"
+          >
+            {isCreatingProject ? 'Cancel' : 'New Project'}
+          </GradientButton>
+        }
+      />
 
       {/* Project Creator Form block */}
       {isCreatingProject && (
@@ -496,17 +477,11 @@ export const Projects: React.FC = () => {
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div>
-                      <span className="text-[9px] font-mono tracking-wider font-semibold text-purple-400 uppercase bg-purple-500/10 px-2 py-0.5 rounded-md">
-                        {p.category}
-                      </span>
+                      <StatusBadge tone="purple">{p.category}</StatusBadge>
                     </div>
-                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${
-                      p.priority === 'High' ? 'bg-rose-500/10 text-rose-300 border border-rose-500/15' :
-                      p.priority === 'Medium' ? 'bg-amber-500/10 text-amber-300 border border-amber-500/15' :
-                      'bg-neutral-800 text-neutral-400 border border-neutral-700/50'
-                    }`}>
+                    <StatusBadge tone={p.priority === 'High' ? 'rose' : p.priority === 'Medium' ? 'amber' : 'neutral'}>
                       {p.priority}
-                    </span>
+                    </StatusBadge>
                   </div>
 
                   <h3 className="text-md font-bold font-sans text-white leading-snug hover:text-purple-300 transition duration-200">
@@ -522,14 +497,7 @@ export const Projects: React.FC = () => {
                     <span className="text-neutral-400 font-sans">Progress</span>
                     <span className="font-mono font-bold text-white">{p.progress}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-neutral-950 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${p.progress}%` }}
-                      transition={{ duration: 0.6 }}
-                      className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
-                    />
-                  </div>
+                  <ProgressBar value={p.progress} className="h-1.5" />
                   <div className="flex justify-between items-center text-[9px] text-neutral-500 font-sans">
                     <span>Deadline: {p.deadline || 'None'}</span>
                     <span className="text-purple-400 flex items-center gap-1 font-semibold group-hover:underline">

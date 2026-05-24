@@ -8,7 +8,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { mockDb } from '../lib/supabase';
-import { EmptyState, LoadingState, GradientButton } from '../components/Reusable';
+import { EmptyState, LoadingState, GradientButton, PageHeader } from '../components/Reusable';
 
 export const Notes: React.FC = () => {
   const [notesList, setNotesList] = useState<any[]>([]);
@@ -176,26 +176,21 @@ export const Notes: React.FC = () => {
   return (
     <div className="page-shell flex min-h-0 flex-col font-sans text-xs">
       
-      {/* Search Header toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/5 pb-4">
-        <div>
-          <h1 className="page-title flex items-center gap-2">
-            <StickyNote className="w-6 h-6 text-purple-400" />
-            Notes
-          </h1>
-          <p className="page-subtitle mt-2">
-            Capture useful thinking before it disappears: notes, references, ideas, and reflections.
-          </p>
-        </div>
-
-        <GradientButton
-          onClick={handleStartCreating}
-          className="w-full px-4 py-2 text-sm sm:w-auto"
-        >
-          <Plus className="w-4 h-4" />
-          New Note
-        </GradientButton>
-      </div>
+      <PageHeader
+        icon={StickyNote}
+        title="Notes"
+        description="Capture useful thinking before it disappears: notes, references, ideas, and reflections."
+        className="border-b border-white/5 pb-4"
+        action={
+          <GradientButton
+            onClick={handleStartCreating}
+            className="w-full px-4 py-2 text-sm sm:w-auto"
+          >
+            <Plus className="w-4 h-4" />
+            New Note
+          </GradientButton>
+        }
+      />
 
       {/* Primary Split Screen Layout */}
       <div className="grid min-h-0 grid-cols-1 gap-4 lg:min-h-[calc(100dvh-13rem)] lg:grid-cols-12 lg:gap-6">

@@ -16,7 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { mockDb } from '../lib/supabase';
-import { GlassCard, GlowCard, EmptyState, LoadingState } from '../components/Reusable';
+import { GlassCard, GlowCard, EmptyState, LoadingState, StatusBadge, PageHeader } from '../components/Reusable';
 
 // Helper to determine icon based on category
 const getCategoryIcon = (category: string) => {
@@ -189,26 +189,21 @@ export const Habits: React.FC = () => {
   return (
     <div className="page-shell">
       
-      {/* Title Header with action button */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-white/5 pb-5">
-        <div>
-          <h1 className="page-title flex items-center gap-2">
-            <CheckCircle2 className="w-6 h-6 text-purple-400" />
-            Habit Tracker
-          </h1>
-          <p className="page-subtitle mt-2">
-            Build small routines that compound into a stronger week.
-          </p>
-        </div>
-        
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="touch-target flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-purple-500/20 transition hover:from-purple-500 hover:to-indigo-500 cursor-pointer sm:w-auto"
-        >
-          {showAddForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          {showAddForm ? 'Cancel' : 'New Habit'}
-        </button>
-      </div>
+      <PageHeader
+        icon={CheckCircle2}
+        title="Habit Tracker"
+        description="Build small routines that compound into a stronger week."
+        className="border-b border-white/5 pb-5"
+        action={
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="touch-target flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-purple-500/20 transition hover:from-purple-500 hover:to-indigo-500 sm:w-auto"
+          >
+            {showAddForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {showAddForm ? 'Cancel' : 'New Habit'}
+          </button>
+        }
+      />
 
       {/* FORM EXPANDER */}
       <AnimatePresence>
@@ -387,7 +382,69 @@ export const Habits: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          <div className="overflow-x-auto rounded-lg border border-white/10 bg-neutral-950/30 backdrop-blur-md">
+          <div className="grid gap-3 md:hidden">
+            {habits.map((habit) => {
+              const CategoryIcon = getCategoryIcon(habit.category);
+              const styleTuple = getCategoryColor(habit.category);
+              const curStreak = calculateStreak(habit.completed_dates || []);
+
+              return (
+                <GlassCard key={habit.id} className="p-4" hoverScale={false}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className={`rounded-lg border p-2 ${styleTuple} shrink-0`}>
+                        <CategoryIcon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold leading-snug text-white">{habit.title}</h3>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <StatusBadge tone="purple">{habit.category}</StatusBadge>
+                          <StatusBadge tone="neutral">{habit.frequency}</StatusBadge>
+                          <StatusBadge tone="amber">
+                            <Flame className="mr-1 h-3 w-3" />
+                            {curStreak}d
+                          </StatusBadge>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteHabit(habit.id)}
+                      className="touch-target shrink-0 rounded-lg border border-white/10 bg-white/[0.035] p-2 text-neutral-500 transition hover:border-rose-400/20 hover:text-rose-300"
+                      title="Retire routine"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-7 gap-1.5">
+                    {daysList.map((day) => {
+                      const isDone = habit.completed_dates && habit.completed_dates.includes(day.dateStr);
+                      return (
+                        <button
+                          key={day.dateStr}
+                          onClick={() => handleToggleDate(habit.id, day.dateStr)}
+                          className={`flex min-h-[56px] flex-col items-center justify-center rounded-lg border text-center transition active:scale-95 ${
+                            isDone
+                              ? 'border-purple-400/40 bg-purple-600 text-white shadow-[0_10px_24px_-18px_rgba(168,85,247,0.9)]'
+                              : day.isToday
+                                ? 'border-purple-400/25 bg-purple-500/10 text-purple-100'
+                                : 'border-white/10 bg-slate-950/45 text-slate-500'
+                          }`}
+                          aria-label={`${isDone ? 'Uncheck' : 'Check'} ${habit.title} for ${day.label} ${day.dayNum}`}
+                        >
+                          <span className="text-[9px] font-semibold">{day.label}</span>
+                          <span className="metric-number mt-0.5 text-xs font-bold">{day.dayNum}</span>
+                          <Check className={`mt-0.5 h-3.5 w-3.5 transition ${isDone ? 'scale-100' : 'scale-0'}`} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </GlassCard>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-lg border border-white/10 bg-neutral-950/30 backdrop-blur-md md:block">
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="border-b border-white/5 bg-neutral-900/40 text-[10px] font-mono text-neutral-400 uppercase tracking-widest">

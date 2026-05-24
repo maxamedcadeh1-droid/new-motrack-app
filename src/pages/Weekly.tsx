@@ -8,7 +8,7 @@ import {
   Zap
 } from 'lucide-react';
 import { mockDb } from '../lib/supabase';
-import { GlassCard, GlowCard, EmptyState, LoadingState, GradientButton } from '../components/Reusable';
+import { GlassCard, GlowCard, EmptyState, LoadingState, GradientButton, PageHeader } from '../components/Reusable';
 
 export const Weekly: React.FC = () => {
   const [goals, setGoals] = useState<any[]>([]);
@@ -73,26 +73,20 @@ export const Weekly: React.FC = () => {
 
   return (
     <div className="page-shell-narrow">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="page-title flex items-center gap-2">
-            <CalendarRange className="w-6 h-6 text-purple-400" />
-            Weekly Planner
-          </h1>
-          <p className="page-subtitle mt-2">
-            Set a clear weekly intention, then make progress visible one small win at a time.
-          </p>
-        </div>
-
-        <GradientButton
-          onClick={() => setIsAdding(!isAdding)}
-          variant={isAdding ? 'ghost' : 'purple'}
-          className="w-full px-4 py-2 text-sm sm:w-auto"
-        >
-          {isAdding ? 'Close' : 'New Goal'}
-        </GradientButton>
-      </div>
+      <PageHeader
+        icon={CalendarRange}
+        title="Weekly Planner"
+        description="Set a clear weekly intention, then make progress visible one small win at a time."
+        action={
+          <GradientButton
+            onClick={() => setIsAdding(!isAdding)}
+            variant={isAdding ? 'ghost' : 'purple'}
+            className="w-full px-4 py-2 text-sm sm:w-auto"
+          >
+            {isAdding ? 'Close' : 'New Goal'}
+          </GradientButton>
+        }
+      />
 
       {/* Grid Dashboard recap metrics */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">

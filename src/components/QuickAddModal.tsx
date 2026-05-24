@@ -138,10 +138,9 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
     <AnimatePresence>
+      {isOpen && (
       <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
         <motion.div
           initial={{ opacity: 0 }}
@@ -156,7 +155,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 36, opacity: 0 }}
           transition={{ duration: 0.24, ease: 'easeOut' }}
-          className="mobile-sheet relative z-50 flex w-full max-w-xl flex-col overflow-hidden border border-white/10 bg-[#070b16]/95 shadow-[0_24px_90px_-48px_rgba(139,92,246,0.8)] backdrop-blur-xl sm:relative sm:rounded-lg"
+          className="mobile-sheet relative z-50 flex w-full max-w-xl flex-col overflow-hidden border border-white/10 bg-[#070b16]/96 shadow-[0_24px_90px_-48px_rgba(139,92,246,0.8)] backdrop-blur-xl sm:relative sm:rounded-lg"
         >
           <div className="flex justify-center pt-3 sm:hidden">
             <span className="h-1.5 w-11 rounded-full bg-white/20" />
@@ -226,7 +225,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
             </button>
           </div>
 
-          <div className="max-h-[calc(88dvh-132px)] overflow-y-auto px-5 py-5 text-sm sm:max-h-[70vh] sm:px-6">
+          <div className="keyboard-safe-scroll max-h-[calc(92dvh-132px)] overflow-y-auto px-5 py-5 text-sm sm:max-h-[70vh] sm:px-6">
             {activeTab === 'project' && (
               <form onSubmit={handleCreateProject} className="space-y-4">
                 <div>
@@ -300,7 +299,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
                     className="field-control"
                   />
                 </div>
-                <div className="flex flex-col-reverse gap-2 border-t border-white/5 pt-4 sm:flex-row sm:justify-end sm:gap-3">
+                <div className="modal-actions flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
                   <button
                     type="button"
                     onClick={onClose}
@@ -386,7 +385,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
                         />
                       </div>
                     </div>
-                    <div className="flex flex-col-reverse gap-2 border-t border-white/5 pt-4 sm:flex-row sm:justify-end sm:gap-3">
+                    <div className="modal-actions flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
                       <button
                         type="button"
                         onClick={onClose}
@@ -462,7 +461,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
                     className="field-control"
                   />
                 </div>
-                <div className="flex flex-col-reverse gap-2 border-t border-white/5 pt-4 sm:flex-row sm:justify-end sm:gap-3">
+                <div className="modal-actions flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
                   <button
                     type="button"
                     onClick={onClose}
@@ -526,7 +525,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
                     className="field-control"
                   />
                 </div>
-                <div className="flex flex-col-reverse gap-2 border-t border-white/5 pt-4 sm:flex-row sm:justify-end sm:gap-3">
+                <div className="modal-actions flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
                   <button
                     type="button"
                     onClick={onClose}
@@ -541,6 +540,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, o
           </div>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   );
 };

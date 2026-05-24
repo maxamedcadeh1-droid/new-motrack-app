@@ -22,7 +22,10 @@ import {
   StatCard,
   LoadingState,
   EmptyState,
-  GradientButton
+  GradientButton,
+  ProgressBar,
+  SectionHeader,
+  StatusBadge
 } from '../components/Reusable';
 
 export const Dashboard: React.FC = () => {
@@ -170,11 +173,18 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="page-shell">
-      <section className="relative overflow-hidden rounded-lg border border-white/10 bg-[#090d1b]/75 p-5 shadow-[0_24px_80px_-52px_rgba(0,0,0,0.95)] backdrop-blur-xl sm:p-6 md:p-7">
-        <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-purple-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-blue-500/15 blur-3xl" />
-        <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+      <section className="premium-border relative overflow-hidden rounded-lg border border-white/10 bg-[linear-gradient(135deg,rgba(13,20,42,0.95),rgba(5,9,22,0.88)_48%,rgba(8,13,30,0.98))] p-5 shadow-[0_26px_86px_-56px_rgba(0,0,0,0.98)] sm:p-6 md:p-7">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(139,92,246,0.16),transparent_36%,rgba(34,211,238,0.08)_72%,transparent)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
+        <div className="relative grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
         <div className="min-w-0">
+          <motion.span
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="section-kicker mb-2 block text-purple-200"
+          >
+            Student command center
+          </motion.span>
           <motion.h1
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -188,15 +198,35 @@ export const Dashboard: React.FC = () => {
             transition={{ delay: 0.1 }}
             className="page-subtitle mt-2"
           >
-            A calm space for meaningful progress. Choose one priority, protect focus, and let the day get lighter.
+            Choose one priority, protect a focused block, and let every small win compound into visible momentum.
           </motion.p>
+          <div className="mt-5 grid grid-cols-3 gap-2 sm:max-w-lg">
+            <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
+              <span className="block text-[10px] font-semibold uppercase text-slate-500">Momentum</span>
+              <span className="metric-number mt-1 block text-lg font-bold text-white">{momentum.score}%</span>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
+              <span className="block text-[10px] font-semibold uppercase text-slate-500">Focus</span>
+              <span className="metric-number mt-1 block text-lg font-bold text-cyan-100">{focusMinSum}m</span>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/[0.035] p-3">
+              <span className="block text-[10px] font-semibold uppercase text-slate-500">Streak</span>
+              <span className="metric-number mt-1 block text-lg font-bold text-amber-100">{momentum.streak}d</span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex gap-2 self-start md:self-center">
+        <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
           <Link to="/focus" className="shrink-0">
-            <GradientButton variant="cyan" className="px-4 py-2 text-sm">
-              <Play className="w-3.5 h-3.5" />
+            <GradientButton variant="cyan" className="w-full px-4 py-2 text-sm sm:w-auto lg:w-full">
+              <Play className="h-3.5 w-3.5" />
               Begin focus
+            </GradientButton>
+          </Link>
+          <Link to="/projects" className="shrink-0">
+            <GradientButton variant="ghost" className="w-full px-4 py-2 text-sm sm:w-auto lg:w-full">
+              <ArrowRight className="h-3.5 w-3.5" />
+              Review projects
             </GradientButton>
           </Link>
         </div>
@@ -300,7 +330,7 @@ export const Dashboard: React.FC = () => {
                   value={aiPrompt}
                   onChange={e => setAiPrompt(e.target.value)}
                   placeholder="Ask for research schedules, exam plans, or task ideas..."
-                  className="min-h-11 flex-grow rounded-lg border border-white/10 bg-neutral-950/60 px-4 py-2.5 text-sm text-white placeholder:text-neutral-500 focus:border-purple-400 focus:outline-none"
+                  className="field-control flex-grow"
                 />
                 <button
                   type="submit"
@@ -329,15 +359,12 @@ export const Dashboard: React.FC = () => {
           </GlowCard>
 
           <GlassCard className="flex-1 p-5 sm:p-6" hoverScale={false}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-purple-400" />
-                <h3 className="text-xs uppercase tracking-wider font-semibold text-neutral-400">Active Projects</h3>
-              </div>
-              <Link to="/projects" className="text-xs text-purple-400 font-semibold hover:underline">
-                View projects
-              </Link>
-            </div>
+            <SectionHeader
+              icon={TrendingUp}
+              title="Active Projects"
+              className="mb-4"
+              action={<Link to="/projects" className="text-xs font-semibold text-purple-300 transition hover:text-white">View projects</Link>}
+            />
 
             {projects.length === 0 ? (
               <EmptyState
@@ -357,26 +384,15 @@ export const Dashboard: React.FC = () => {
                           </span>
                           <span className="text-[10px] text-neutral-400 block mt-0.5 font-mono">{p.category}</span>
                         </div>
-                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${
-                          p.priority === 'High' ? 'bg-rose-500/10 text-rose-300 border border-rose-500/15' :
-                          p.priority === 'Medium' ? 'bg-amber-500/10 text-amber-300 border border-amber-500/15' :
-                          'bg-neutral-800 text-neutral-400'
-                        }`}>
+                        <StatusBadge tone={p.priority === 'High' ? 'rose' : p.priority === 'Medium' ? 'amber' : 'neutral'}>
                           {p.priority}
-                        </span>
+                        </StatusBadge>
                       </div>
                       
                       {/* Fluid progress bar */}
                       <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1.5 bg-neutral-950 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${p.progress}%` }}
-                            transition={{ duration: 0.8 }}
-                            className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
-                          />
-                        </div>
-                        <span className="text-[10px] font-mono text-neutral-300 shrink-0">{p.progress}%</span>
+                        <ProgressBar value={p.progress} className="h-1.5 flex-1" />
+                        <span className="metric-number shrink-0 text-[10px] text-neutral-300">{p.progress}%</span>
                       </div>
                     </div>
                   </Link>

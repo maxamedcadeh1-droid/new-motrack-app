@@ -11,7 +11,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { mockDb } from '../lib/supabase';
-import { GlassCard, GlowCard, LoadingState, GradientButton } from '../components/Reusable';
+import { GlassCard, GlowCard, LoadingState, GradientButton, PageHeader } from '../components/Reusable';
 
 export const ProfileSettings: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -75,18 +75,12 @@ export const ProfileSettings: React.FC = () => {
   return (
     <div className="page-shell-narrow select-none font-sans text-xs">
       
-      {/* Header title */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/5 pb-4">
-        <div>
-          <h1 className="page-title flex items-center gap-2">
-            <User className="w-6 h-6 text-purple-400" />
-            Profile & Settings
-          </h1>
-          <p className="page-subtitle mt-2">
-            Keep your workspace identity, academic context, and focus goal aligned.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        icon={User}
+        title="Profile & Settings"
+        description="Keep your workspace identity, academic context, and focus goal aligned."
+        className="border-b border-white/5 pb-4"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Profile Card details edit form */}

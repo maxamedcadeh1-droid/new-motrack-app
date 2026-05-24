@@ -84,6 +84,7 @@ export const AppShell: React.FC = () => {
   ];
 
   const mobileNavItems = [navItems[0], navItems[1], navItems[2], navItems[6], navItems[8]];
+  const mobileRailItems = [navItems[3], navItems[4], navItems[5], navItems[7]];
 
   const isNavActive = (path: string) => {
     if (path === '/profile' && location.pathname.startsWith('/settings')) return true;
@@ -95,7 +96,7 @@ export const AppShell: React.FC = () => {
   return (
     <div className="app-background relative min-h-[100dvh] overflow-x-hidden bg-[#030611] text-slate-100 antialiased selection:bg-purple-500/30 selection:text-purple-100">
       <div className="flex min-h-[100dvh] flex-col md:flex-row">
-        <aside className="hidden h-[100dvh] w-72 shrink-0 border-r border-white/10 bg-[#050915]/80 p-5 backdrop-blur-xl md:sticky md:top-0 md:flex md:flex-col">
+        <aside className="hidden h-[100dvh] w-72 shrink-0 border-r border-white/10 bg-[#050915]/86 p-5 backdrop-blur-xl md:sticky md:top-0 md:flex md:flex-col">
           <Link to="/dashboard" className="mb-6 flex items-center gap-3 px-1">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-purple-300/20 bg-gradient-to-br from-purple-600/30 to-blue-500/20 shadow-[0_18px_45px_-24px_rgba(139,92,246,0.95)]">
               <span className="bg-gradient-to-br from-purple-200 to-blue-200 bg-clip-text font-display text-2xl font-bold text-transparent">M</span>
@@ -128,6 +129,7 @@ export const AppShell: React.FC = () => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`group relative flex min-h-11 items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition ${
                     isActive
                       ? 'text-white'
@@ -174,7 +176,7 @@ export const AppShell: React.FC = () => {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 border-b border-white/10 bg-[#050915]/75 px-4 backdrop-blur-xl md:px-6" style={{ paddingTop: 'max(0.75rem, var(--safe-top))' }}>
+          <header className="sticky top-0 z-30 border-b border-white/10 bg-[#040817]/84 px-4 shadow-[0_18px_42px_-36px_rgba(0,0,0,0.95)] backdrop-blur-xl md:px-6" style={{ paddingTop: 'max(0.75rem, var(--safe-top))' }}>
             <div className="flex min-h-14 items-center justify-between gap-3 pb-3 md:pb-4">
               <Link to="/dashboard" className="flex min-w-0 items-center gap-3 md:hidden">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-purple-300/20 bg-gradient-to-br from-purple-600/30 to-blue-500/20">
@@ -226,9 +228,30 @@ export const AppShell: React.FC = () => {
                 )}
               </div>
             </div>
+            <nav className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto pb-3 md:hidden" aria-label="More navigation">
+              {mobileRailItems.map(item => {
+                const isActive = isNavActive(item.path);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`flex min-h-9 shrink-0 items-center gap-2 rounded-lg border px-3 text-[11px] font-semibold transition ${
+                      isActive
+                        ? 'border-purple-300/25 bg-purple-500/15 text-purple-100'
+                        : 'border-white/10 bg-white/[0.035] text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
           </header>
 
-          <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-32 pt-5 md:px-6 md:pb-8 md:pt-6">
+          <main className="app-content-safe min-w-0 flex-1 overflow-x-hidden px-4 pt-5 md:px-6 md:pt-6">
             <Outlet />
           </main>
         </div>
@@ -244,7 +267,7 @@ export const AppShell: React.FC = () => {
       </button>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 px-3 pb-3 md:hidden" aria-label="Primary navigation">
-        <div className="bottom-nav-safe mx-auto grid max-w-md grid-cols-5 gap-1 rounded-[22px] border border-white/10 bg-[#050915]/90 p-1.5 shadow-[0_18px_60px_-28px_rgba(0,0,0,0.98)] backdrop-blur-xl">
+        <div className="bottom-nav-safe premium-border mx-auto grid max-w-md grid-cols-5 gap-1 rounded-lg border border-white/10 bg-[#050915]/92 p-1.5 shadow-[0_18px_60px_-28px_rgba(0,0,0,0.98)] backdrop-blur-xl">
           {mobileNavItems.map(item => {
             const isActive = isNavActive(item.path);
             const Icon = item.icon;
@@ -252,14 +275,15 @@ export const AppShell: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-[16px] px-1 text-[10px] font-medium transition active:scale-[0.96] ${
+                aria-current={isActive ? 'page' : undefined}
+                className={`relative flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-medium transition active:scale-[0.96] ${
                   isActive ? 'text-white' : 'text-slate-500'
                 }`}
               >
                 {isActive && (
                   <motion.span
                     layoutId="mobileNavActive"
-                    className="absolute inset-0 rounded-[16px] border border-purple-300/25 bg-gradient-to-b from-purple-500/20 to-blue-500/10"
+                    className="absolute inset-0 rounded-lg border border-purple-300/25 bg-gradient-to-b from-purple-500/20 to-blue-500/10"
                     transition={{ type: 'spring', stiffness: 440, damping: 36 }}
                   />
                 )}

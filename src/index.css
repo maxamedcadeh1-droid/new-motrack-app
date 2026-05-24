@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Geist", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -11,13 +11,21 @@
   color-scheme: dark;
   --bg: #030611;
   --bg-soft: #070b17;
-  --surface: rgba(9, 14, 30, 0.76);
-  --surface-strong: rgba(10, 16, 33, 0.94);
+  --surface: rgba(9, 14, 30, 0.82);
+  --surface-muted: rgba(255, 255, 255, 0.035);
+  --surface-strong: rgba(10, 16, 33, 0.96);
   --stroke: rgba(255, 255, 255, 0.1);
   --stroke-strong: rgba(255, 255, 255, 0.16);
   --accent: #8b5cf6;
   --accent-2: #3b82f6;
   --accent-3: #22d3ee;
+  --danger: #fb7185;
+  --success: #34d399;
+  --radius-card: 0.5rem;
+  --shadow-card: 0 18px 68px -44px rgba(0, 0, 0, 0.98);
+  --shadow-glow: 0 20px 54px -34px rgba(99, 102, 241, 0.7);
+  --bottom-nav-height: 6.75rem;
+  --keyboard-inset: env(keyboard-inset-height, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -51,6 +59,7 @@ body {
     linear-gradient(180deg, #080d1c 0%, #050815 48%, #030611 100%);
   color: #f8fafc;
   font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -59,6 +68,11 @@ body {
 #root {
   min-height: 100dvh;
   overflow-x: hidden;
+}
+
+#root,
+.app-background {
+  min-width: 0;
 }
 
 button,
@@ -86,6 +100,15 @@ textarea,
 select {
   min-height: 44px !important;
   font-size: 16px !important;
+}
+
+input[type="date"] {
+  min-width: 0;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.7;
 }
 
 button:focus-visible,
@@ -156,6 +179,7 @@ select:focus-visible {
   display: flex;
   flex-direction: column;
   gap: clamp(1rem, 2.4vw, 1.5rem);
+  min-width: 0;
 }
 
 .page-shell-narrow {
@@ -165,6 +189,7 @@ select:focus-visible {
   display: flex;
   flex-direction: column;
   gap: clamp(1rem, 2.4vw, 1.5rem);
+  min-width: 0;
 }
 
 .page-title {
@@ -205,10 +230,10 @@ select:focus-visible {
 .field-control {
   width: 100%;
   min-height: 44px;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-card);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(7, 11, 24, 0.72);
-  padding: 0.625rem 1rem;
+  background: linear-gradient(180deg, rgba(8, 13, 28, 0.88), rgba(4, 8, 18, 0.82));
+  padding: 0.72rem 0.95rem;
   color: #fff;
   transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
 }
@@ -225,9 +250,37 @@ select:focus-visible {
 
 .glass-panel {
   border: 1px solid var(--stroke);
-  background: linear-gradient(180deg, rgba(12, 18, 37, 0.82), rgba(7, 11, 24, 0.76));
-  box-shadow: 0 20px 64px -42px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(22px);
+  background:
+    linear-gradient(180deg, rgba(13, 19, 39, 0.9), rgba(6, 10, 23, 0.78)),
+    linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.035) 42%, transparent);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(18px);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.premium-border {
+  position: relative;
+}
+
+.premium-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.38), rgba(59, 130, 246, 0.22), rgba(255, 255, 255, 0.04));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.metric-number {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: 0;
 }
 
 .touch-target {
@@ -241,6 +294,26 @@ select:focus-visible {
 
 .bottom-nav-safe {
   padding-bottom: max(0.55rem, var(--safe-bottom));
+}
+
+.app-content-safe {
+  padding-bottom: calc(var(--bottom-nav-height) + max(1rem, var(--safe-bottom)));
+}
+
+.keyboard-safe-scroll {
+  overscroll-behavior: contain;
+  scroll-padding-bottom: calc(5.5rem + var(--safe-bottom) + var(--keyboard-inset));
+  padding-bottom: calc(1rem + var(--safe-bottom) + var(--keyboard-inset));
+}
+
+.modal-actions {
+  position: sticky;
+  bottom: calc(-1rem - var(--safe-bottom));
+  margin-inline: -0.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(7, 11, 22, 0.62), rgba(7, 11, 22, 0.96) 28%);
+  padding: 1rem 0.25rem calc(0.25rem + var(--safe-bottom));
+  backdrop-filter: blur(12px);
 }
 
 .text-balance {
@@ -260,6 +333,15 @@ select:focus-visible {
   overflow: hidden;
   position: relative;
   background: rgba(255, 255, 255, 0.06);
+}
+
+.pressable {
+  transform: translateZ(0);
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.pressable:active {
+  transform: scale(0.985);
 }
 
 .skeleton::after {
@@ -306,9 +388,18 @@ select:focus-visible {
     inset-inline: 0;
     bottom: 0;
     width: 100%;
-    max-height: min(88dvh, 760px);
+    height: auto;
+    max-height: min(92dvh, 760px);
     border-radius: 24px 24px 0 0;
     padding-bottom: var(--safe-bottom);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+}
+
+@media (min-width: 768px) {
+  .app-content-safe {
+    padding-bottom: 2rem;
   }
 }
 

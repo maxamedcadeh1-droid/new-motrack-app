@@ -20,7 +20,7 @@ import {
   CartesianGrid
 } from 'recharts';
 import { mockDb } from '../lib/supabase';
-import { GlassCard, GlowCard, LoadingState } from '../components/Reusable';
+import { GlassCard, GlowCard, LoadingState, PageHeader } from '../components/Reusable';
 
 export const Analytics: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -89,18 +89,11 @@ export const Analytics: React.FC = () => {
 
   return (
     <div className="page-shell font-sans text-xs">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="page-title flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-purple-400" />
-            Analytics
-          </h1>
-          <p className="page-subtitle mt-2">
-            See the signals behind your focus, routines, and project momentum.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        icon={BarChart3}
+        title="Analytics"
+        description="See the signals behind your focus, routines, and project momentum."
+      />
 
       {/* Bento Stats row */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">

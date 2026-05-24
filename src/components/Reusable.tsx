@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, LucideIcon, RefreshCw, AlertCircle } from 'lucide-react';
+import { Sparkles, LucideIcon, RefreshCw, AlertCircle, ArrowRight } from 'lucide-react';
 
 interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -30,7 +30,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     <motion.div
       whileHover={hoverScale ? { y: -2 } : undefined}
       transition={{ duration: 0.18, ease: 'easeOut' }}
-      className={`glass-panel rounded-lg p-4 transition-all duration-300 sm:p-5 ${glowStyle} ${className}`}
+      className={`glass-panel pressable rounded-lg p-4 transition-all duration-300 sm:p-5 ${glowStyle} ${className}`}
       {...props}
     >
       {children}
@@ -57,7 +57,7 @@ export const GlowCard: React.FC<GlowCardProps> = ({
 
   return (
     <div className="group relative rounded-lg">
-      <div className={`absolute -inset-px rounded-lg bg-gradient-to-r ${gradientBorder} opacity-70 blur-sm transition duration-500 group-hover:opacity-100`} />
+      <div className={`absolute -inset-px rounded-lg bg-gradient-to-r ${gradientBorder} opacity-55 blur-[3px] transition duration-500 group-hover:opacity-90`} />
       <GlassCard className={`relative z-10 ${className}`} hoverScale={false} {...props}>
         {children}
       </GlassCard>
@@ -100,7 +100,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <span className="mb-1 block truncate text-[11px] font-semibold uppercase tracking-wide text-slate-400">{title}</span>
-          <span className="block font-display text-2xl font-bold leading-none tracking-normal text-white sm:text-3xl">{value}</span>
+          <span className="metric-number block text-2xl font-bold leading-none text-white sm:text-3xl">{value}</span>
         </div>
         <div className={`touch-target flex shrink-0 items-center justify-center rounded-lg border ${selectedColor.bg} ${selectedColor.text}`}>
           <Icon className="h-5 w-5" />
@@ -110,7 +110,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/5 pt-3 text-[11px] text-slate-500">
           <span className="min-w-0 truncate">{subtext}</span>
           {trend && (
-            <span className={`${trend.isPositive ? 'text-emerald-300' : 'text-slate-500'} shrink-0 font-semibold`}>
+          <span className={`${trend.isPositive ? 'text-emerald-300' : 'text-slate-500'} shrink-0 font-semibold`}>
               {trend.value}
             </span>
           )}
@@ -150,7 +150,7 @@ export const MomentumOrb: React.FC<MomentumOrbProps> = ({ score, streak }) => {
 
         <div className="z-10 flex flex-col items-center text-center">
           <Sparkles className="mb-1 h-4 w-4 text-purple-200" />
-          <span className="font-display text-4xl font-bold tracking-normal text-white">{score}%</span>
+          <span className="metric-number text-4xl font-bold tracking-normal text-white">{score}%</span>
           <span className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-slate-400">Momentum</span>
         </div>
 
@@ -219,8 +219,8 @@ export const EmptyState: React.FC<{
   actionLabel?: string;
   onAction?: () => void;
 }> = ({ title, description, icon: Icon, actionLabel, onAction }) => (
-  <div className="my-4 flex flex-col items-center justify-center rounded-lg border border-dashed border-white/10 bg-[#070b16]/66 p-7 text-center sm:p-10">
-    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-400">
+  <div className="my-4 flex flex-col items-center justify-center rounded-lg border border-dashed border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018))] p-7 text-center sm:p-10">
+    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 shadow-[0_18px_38px_-26px_rgba(139,92,246,0.9)]">
       <Icon className="h-7 w-7 opacity-85" />
     </div>
     <h3 className="mb-1 font-display text-lg font-semibold tracking-normal text-white">{title}</h3>
@@ -228,6 +228,7 @@ export const EmptyState: React.FC<{
     {actionLabel && onAction && (
       <GradientButton onClick={onAction} className="px-4 py-2 text-sm">
         {actionLabel}
+        <ArrowRight className="h-4 w-4" />
       </GradientButton>
     )}
   </div>
@@ -260,5 +261,86 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
     >
       {children}
     </motion.button>
+  );
+};
+
+export const PageHeader: React.FC<{
+  icon?: LucideIcon;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+  className?: string;
+}> = ({ icon: Icon, eyebrow, title, description, action, className = '' }) => (
+  <div className={`flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between ${className}`}>
+    <div className="min-w-0">
+      {eyebrow && <span className="section-kicker mb-2 block text-purple-300">{eyebrow}</span>}
+      <h1 className="page-title flex min-w-0 items-center gap-2 text-balance">
+        {Icon && <Icon className="h-6 w-6 shrink-0 text-purple-300" />}
+        <span className="min-w-0">{title}</span>
+      </h1>
+      {description && <p className="page-subtitle mt-2">{description}</p>}
+    </div>
+    {action && <div className="w-full shrink-0 sm:w-auto">{action}</div>}
+  </div>
+);
+
+export const SectionHeader: React.FC<{
+  icon?: LucideIcon;
+  title: string;
+  action?: React.ReactNode;
+  className?: string;
+}> = ({ icon: Icon, title, action, className = '' }) => (
+  <div className={`flex min-w-0 items-center justify-between gap-3 ${className}`}>
+    <div className="flex min-w-0 items-center gap-2">
+      {Icon && <Icon className="h-4 w-4 shrink-0 text-purple-300" />}
+      <h2 className="section-kicker min-w-0 truncate">{title}</h2>
+    </div>
+    {action && <div className="shrink-0">{action}</div>}
+  </div>
+);
+
+export const ProgressBar: React.FC<{
+  value: number;
+  color?: 'purple' | 'blue' | 'green' | 'amber';
+  className?: string;
+}> = ({ value, color = 'purple', className = '' }) => {
+  const gradientMap = {
+    purple: 'from-purple-500 via-indigo-500 to-blue-500',
+    blue: 'from-blue-500 to-cyan-400',
+    green: 'from-emerald-400 to-teal-400',
+    amber: 'from-amber-400 to-orange-500',
+  };
+
+  return (
+    <div className={`h-2 overflow-hidden rounded-full bg-slate-950/80 ${className}`}>
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+        transition={{ duration: 0.72, ease: 'easeOut' }}
+        className={`h-full rounded-full bg-gradient-to-r ${gradientMap[color]}`}
+      />
+    </div>
+  );
+};
+
+export const StatusBadge: React.FC<{
+  children: React.ReactNode;
+  tone?: 'purple' | 'blue' | 'green' | 'amber' | 'rose' | 'neutral';
+  className?: string;
+}> = ({ children, tone = 'neutral', className = '' }) => {
+  const toneMap = {
+    purple: 'border-purple-400/20 bg-purple-500/10 text-purple-200',
+    blue: 'border-blue-400/20 bg-blue-500/10 text-blue-200',
+    green: 'border-emerald-400/20 bg-emerald-500/10 text-emerald-200',
+    amber: 'border-amber-400/20 bg-amber-500/10 text-amber-200',
+    rose: 'border-rose-400/20 bg-rose-500/10 text-rose-200',
+    neutral: 'border-white/10 bg-white/[0.045] text-slate-300',
+  };
+
+  return (
+    <span className={`inline-flex max-w-full items-center rounded-md border px-2 py-1 text-[10px] font-semibold leading-none ${toneMap[tone]} ${className}`}>
+      {children}
+    </span>
   );
 };

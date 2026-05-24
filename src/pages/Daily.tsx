@@ -9,7 +9,7 @@ import {
   Dumbbell
 } from 'lucide-react';
 import { mockDb } from '../lib/supabase';
-import { GlassCard, EmptyState, LoadingState, GradientButton } from '../components/Reusable';
+import { GlassCard, EmptyState, LoadingState, GradientButton, PageHeader } from '../components/Reusable';
 
 export const Daily: React.FC = () => {
   const [activities, setActivities] = useState<any[]>([]);
@@ -91,26 +91,20 @@ export const Daily: React.FC = () => {
 
   return (
     <div className="page-shell-narrow">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="page-title flex items-center gap-2">
-            <Clock className="w-6 h-6 text-purple-400" />
-            Daily Activities
-          </h1>
-          <p className="page-subtitle mt-2">
-            Capture the shape of your day across study, movement, reading, and recovery.
-          </p>
-        </div>
-
-        <GradientButton
-          onClick={() => setIsAdding(!isAdding)}
-          variant={isAdding ? 'ghost' : 'purple'}
-          className="w-full px-4 py-2 text-sm sm:w-auto"
-        >
-          {isAdding ? 'Close' : 'Log Activity'}
-        </GradientButton>
-      </div>
+      <PageHeader
+        icon={Clock}
+        title="Daily Activities"
+        description="Capture the shape of your day across study, movement, reading, and recovery."
+        action={
+          <GradientButton
+            onClick={() => setIsAdding(!isAdding)}
+            variant={isAdding ? 'ghost' : 'purple'}
+            className="w-full px-4 py-2 text-sm sm:w-auto"
+          >
+            {isAdding ? 'Close' : 'Log Activity'}
+          </GradientButton>
+        }
+      />
 
       {/* Top micro summary banner */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
